@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>CEQ AI Coaching Platform — Record Portal</title>
   <style>
+    /* ══════════════════════════════════════════
+       DESIGN TOKENS — CEQ Brand (matches main app)
+       ══════════════════════════════════════════ */
     :root {
       --ceq-blue:        #030231;
       --ceq-blue-light:  #0e0d4a;
@@ -20,9 +23,10 @@
       --ceq-shadow:      0 1px 3px rgba(0,0,0,0.08);
       --ceq-shadow-lg:   0 4px 12px rgba(0,0,0,0.10);
       --font:            'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+      --sidebar-width:   260px;
+      --header-height:   64px;
       --radius:          8px;
       --radius-lg:       12px;
-      --header-height:   64px;
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html { font-size: 16px; -webkit-font-smoothing: antialiased; }
@@ -32,10 +36,89 @@
       color: var(--ceq-text);
       min-height: 100vh;
       display: flex;
-      flex-direction: column;
     }
 
-    /* ── Top bar (matches main app) ── */
+    /* ══════════════════════════════════════════
+       SIDEBAR — matches main app exactly
+       ══════════════════════════════════════════ */
+    .sidebar {
+      width: var(--sidebar-width);
+      background: var(--ceq-blue);
+      color: var(--ceq-white);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      z-index: 100;
+    }
+    .sidebar-brand {
+      padding: 24px 24px 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    .sidebar-brand h1 {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--ceq-white);
+      letter-spacing: 0.02em;
+    }
+    .sidebar-brand .brand-sub {
+      font-size: 0.75rem;
+      color: rgba(255,255,255,0.55);
+      margin-top: 4px;
+    }
+    .sidebar-nav {
+      flex: 1;
+      padding: 16px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 12px 16px;
+      border-radius: var(--radius);
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: rgba(255,255,255,0.35);
+      cursor: default;
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+      text-decoration: none;
+      transition: all 0.15s ease;
+    }
+    .nav-item .nav-icon { opacity: 0.5; display: flex; align-items: center; }
+    .nav-item.active {
+      background: rgba(255,255,255,0.12);
+      color: var(--ceq-white);
+      cursor: default;
+    }
+    .nav-item.active .nav-icon { opacity: 1; }
+    .nav-item.clickable {
+      color: rgba(255,255,255,0.7);
+      cursor: pointer;
+    }
+    .nav-item.clickable:hover {
+      background: rgba(255,255,255,0.08);
+      color: var(--ceq-white);
+    }
+    .nav-item.clickable .nav-icon { opacity: 0.7; }
+
+    /* ══════════════════════════════════════════
+       MAIN AREA
+       ══════════════════════════════════════════ */
+    .main-area {
+      flex: 1;
+      margin-left: var(--sidebar-width);
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* ── Top bar ── */
     .top-bar {
       height: var(--header-height);
       background: var(--ceq-white);
@@ -43,7 +126,7 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0 24px;
+      padding: 0 28px;
       position: sticky;
       top: 0;
       z-index: 50;
@@ -51,66 +134,47 @@
     .top-bar-left {
       display: flex;
       align-items: center;
-      gap: 14px;
+      gap: 16px;
     }
-    .top-bar-brand {
-      display: flex;
-      align-items: center;
-      gap: 10px;
+    .top-bar-logo {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      overflow: hidden;
     }
-    .top-bar-brand h1 {
-      font-size: 1.3rem;
-      font-weight: 800;
-      color: var(--ceq-blue);
-      letter-spacing: -0.02em;
-    }
-    .top-bar-brand .brand-sub {
-      font-size: 0.68rem;
-      color: var(--ceq-text-light);
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      font-weight: 500;
-    }
-    .top-bar-title {
-      font-size: 1.05rem;
+    .top-bar-logo img { width: 100%; height: 100%; object-fit: cover; }
+    .top-bar h2 {
+      font-size: 1.15rem;
       font-weight: 600;
       color: var(--ceq-blue);
-      padding-left: 14px;
-      border-left: 1.5px solid var(--ceq-border);
     }
     .top-bar-right {
       display: flex;
       align-items: center;
       gap: 12px;
     }
-    .btn-back {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 8px 16px;
-      background: var(--ceq-cream);
+    .user-avatar {
+      width: 34px; height: 34px;
+      background: var(--ceq-cream-dark);
       border: 1.5px solid var(--ceq-border);
-      border-radius: var(--radius);
-      font-family: var(--font);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       font-size: 0.8rem;
       font-weight: 600;
       color: var(--ceq-text);
-      cursor: pointer;
-      text-decoration: none;
-      transition: all 0.15s;
     }
-    .btn-back:hover { background: var(--ceq-cream-dark); }
 
-    /* ── Main content ── */
-    .main-area {
+    /* ── Page content ── */
+    .page-content {
       flex: 1;
       display: flex;
       justify-content: center;
-      padding: 32px 20px 48px;
+      padding: 32px 28px 48px;
     }
     .recorder-card {
       width: 100%;
-      max-width: 520px;
+      max-width: 560px;
     }
 
     /* ── Info banner ── */
@@ -142,8 +206,7 @@
       flex: 1;
     }
     .info-banner .step-num {
-      min-width: 24px;
-      height: 24px;
+      min-width: 24px; height: 24px;
       background: rgba(255,255,255,0.15);
       border-radius: 50%;
       display: flex;
@@ -176,7 +239,6 @@
     /* ── Mode toggle ── */
     .mode-toggle {
       display: flex;
-      gap: 0;
       border: 1.5px solid var(--ceq-border);
       border-radius: var(--radius);
       overflow: hidden;
@@ -240,6 +302,80 @@
       color: var(--ceq-text-light);
     }
     .status.recording { color: #ef4444; font-weight: 600; }
+
+    /* ── Record type toggle (Audio / Video) ── */
+    .record-type-toggle {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      margin-bottom: 16px;
+    }
+    .record-type-btn {
+      padding: 8px 18px;
+      border: 1.5px solid var(--ceq-border);
+      border-radius: 20px;
+      background: var(--ceq-white);
+      font-family: var(--font);
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--ceq-text-light);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s;
+    }
+    .record-type-btn:hover { border-color: var(--ceq-blue); color: var(--ceq-text); }
+    .record-type-btn.active {
+      background: var(--ceq-blue);
+      border-color: var(--ceq-blue);
+      color: var(--ceq-white);
+    }
+
+    /* ── Video preview ── */
+    .video-preview-container {
+      display: none;
+      margin: 0 auto 12px;
+      text-align: center;
+    }
+    .video-preview-container.visible { display: block; }
+    .video-preview {
+      width: 100%;
+      max-width: 400px;
+      border-radius: var(--radius);
+      background: #000;
+      display: block;
+      margin: 0 auto;
+    }
+    .video-preview.recording-active {
+      border: 3px solid #ef4444;
+      box-shadow: 0 0 0 4px rgba(239,68,68,0.15);
+    }
+
+    /* ── Practice video title input ── */
+    .practice-title-row {
+      display: none;
+      margin-bottom: 14px;
+    }
+    .practice-title-row.visible { display: block; }
+    .practice-title-input {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1.5px solid var(--ceq-border);
+      border-radius: var(--radius);
+      font-family: var(--font);
+      font-size: 0.85rem;
+      outline: none;
+    }
+    .practice-title-input:focus { border-color: var(--ceq-blue); }
+    .practice-title-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--ceq-text-light);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      margin-bottom: 5px;
+    }
 
     /* ── Visualiser ── */
     .visualiser {
@@ -335,11 +471,14 @@
       color: var(--ceq-text-light);
     }
 
-    /* ── Responsive ── */
-    @media (max-width: 600px) {
+    /* ══════════════════════════════════════════
+       RESPONSIVE — collapse sidebar on mobile
+       ══════════════════════════════════════════ */
+    @media (max-width: 768px) {
+      .sidebar { display: none; }
+      .main-area { margin-left: 0; }
       .top-bar { padding: 0 16px; }
-      .top-bar-title { display: none; }
-      .main-area { padding: 16px 12px 32px; }
+      .page-content { padding: 16px 12px 32px; }
       .info-banner .steps { flex-direction: column; gap: 10px; }
       .card-body { padding: 20px 16px; }
     }
@@ -347,138 +486,219 @@
 </head>
 <body>
 
-  <!-- ═══════════════════════════════════════
-       TOP BAR — matches main app
-       ═══════════════════════════════════════ -->
-  <header class="top-bar">
-    <div class="top-bar-left">
-      <div class="top-bar-brand">
-        <div>
-          <h1>CEQ</h1>
-          <div class="brand-sub">AI Coaching Platform</div>
-        </div>
-      </div>
-      <div class="top-bar-title">Record Portal</div>
+  <!-- ══════════════════════════════════════════
+       SIDEBAR — matches main app
+       ══════════════════════════════════════════ -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <h1>CEQ</h1>
+      <div class="brand-sub">AI Coaching Platform</div>
     </div>
-    <div class="top-bar-right">
-      <a class="btn-back" href="javascript:goToApp()">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
-        Back to Platform
+
+    <nav class="sidebar-nav">
+      <div class="nav-item">
+        <span class="nav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></span>
+        Dashboard
+      </div>
+
+      <div class="nav-item">
+        <span class="nav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="2" x2="12" y2="22"/><circle cx="12" cy="6" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="18" r="2"/><line x1="14" y1="6" x2="20" y2="6"/><line x1="14" y1="12" x2="20" y2="12"/><line x1="14" y1="18" x2="20" y2="18"/></svg></span>
+        Timeline
+      </div>
+
+      <div class="nav-item">
+        <span class="nav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>
+        Ask CEQ
+      </div>
+
+      <div class="nav-item">
+        <span class="nav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></span>
+        Modules
+      </div>
+
+      <div class="nav-item">
+        <span class="nav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg></span>
+        Reflect
+      </div>
+
+      <div class="nav-item">
+        <span class="nav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span>
+        Actions
+      </div>
+
+      <div class="nav-item">
+        <span class="nav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg></span>
+        Resources
+      </div>
+
+      <div class="nav-item">
+        <span class="nav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg></span>
+        Practice
+      </div>
+
+      <!-- Record Portal — ACTIVE -->
+      <a class="nav-item active" href="javascript:void(0)">
+        <span class="nav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg></span>
+        Record Portal
       </a>
-    </div>
-  </header>
 
-  <!-- ═══════════════════════════════════════
-       MAIN CONTENT
-       ═══════════════════════════════════════ -->
+      <div class="nav-item">
+        <span class="nav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+        Community
+      </div>
+    </nav>
+  </aside>
+
+  <!-- ══════════════════════════════════════════
+       MAIN AREA
+       ══════════════════════════════════════════ -->
   <div class="main-area">
-    <div class="recorder-card">
 
-      <!-- Info banner -->
-      <div class="info-banner">
-        <h2>Record a Coaching Session</h2>
-        <p>Record audio directly in your browser, or upload an existing file. Your recording will be sent to the platform for transcription and AI critique against CEQ coaching frameworks.</p>
-        <div class="steps">
-          <div class="step">
-            <div class="step-num">1</div>
-            <div class="step-text"><strong>Record or upload</strong>Use the controls below to capture your coaching session.</div>
-          </div>
-          <div class="step">
-            <div class="step-num">2</div>
-            <div class="step-text"><strong>AI transcribes</strong>Your recording is transcribed using speech-to-text.</div>
-          </div>
-          <div class="step">
-            <div class="step-num">3</div>
-            <div class="step-text"><strong>CEQ critique</strong>AI analyses your coaching against CEQ frameworks and gives feedback.</div>
-          </div>
-        </div>
+    <!-- Top bar -->
+    <header class="top-bar">
+      <div class="top-bar-left">
+        <h2>Record Portal</h2>
       </div>
+      <div class="top-bar-right">
+        <a class="btn btn-outline" href="javascript:goToApp()" style="padding:8px 16px; font-size:0.8rem; display:inline-flex; align-items:center; gap:6px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+          Back to Platform
+        </a>
+        <div class="user-avatar">U</div>
+      </div>
+    </header>
 
-      <!-- Card body -->
-      <div class="card-body">
+    <!-- Page content -->
+    <div class="page-content">
+      <div class="recorder-card">
 
-        <!-- Mode toggle -->
-        <div class="mode-toggle">
-          <button class="mode-btn active" onclick="setMode('record')" id="modeRecBtn">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px;"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg>
-            Record Live
-          </button>
-          <button class="mode-btn" onclick="setMode('upload')" id="modeUpBtn">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-            Upload File
-          </button>
+        <!-- Info banner -->
+        <div class="info-banner">
+          <h2>Record a Coaching Session</h2>
+          <p>Record audio directly in your browser, or upload an existing file. Your recording will be sent to the platform for transcription and CEQ AI critique against CEQ coaching frameworks.</p>
+          <div class="steps">
+            <div class="step">
+              <div class="step-num">1</div>
+              <div class="step-text"><strong>Record or upload</strong>Use the controls below to capture your coaching session.</div>
+            </div>
+            <div class="step">
+              <div class="step-num">2</div>
+              <div class="step-text"><strong>CEQ AI transcribes</strong>Your recording is transcribed using speech-to-text.</div>
+            </div>
+            <div class="step">
+              <div class="step-num">3</div>
+              <div class="step-text"><strong>CEQ AI critique</strong>CEQ AI analyses your coaching against CEQ frameworks and gives feedback.</div>
+            </div>
+          </div>
         </div>
 
-        <!-- Live Recorder -->
-        <div class="recorder" id="recorderUI">
-          <div class="visualiser" id="visualiser"></div>
-          <button class="rec-btn" id="recBtn" onclick="toggleRecording()">
-            <div class="dot"></div>
-          </button>
-          <div class="timer" id="timer">00:00</div>
-          <div class="status" id="recStatus">Tap to start recording</div>
-        </div>
+        <!-- Card body -->
+        <div class="card-body">
 
-        <!-- Upload fallback -->
-        <div class="upload-area" id="uploadUI" onclick="document.getElementById('fileInput').click()">
-          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--ceq-text-light)" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-          <p style="margin:10px 0 4px; font-size:0.88rem; color:var(--ceq-text);">Tap to choose a file</p>
-          <p style="font-size:0.75rem; color:var(--ceq-text-light);">Audio or video — mp3, mp4, wav, m4a, mov, webm, ogg</p>
-          <input type="file" id="fileInput" accept="audio/*,video/*" style="display:none" onchange="handleFileUpload(this)">
-        </div>
-
-        <!-- Result -->
-        <div class="result" id="resultUI">
-          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-          <div class="filename" id="resultName"></div>
-          <div class="filesize" id="resultSize"></div>
-          <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
-            <button class="btn btn-primary" onclick="sendToApp()" id="sendBtn">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:6px;"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-              Send for Transcription &amp; Critique
+          <!-- Mode toggle -->
+          <div class="mode-toggle">
+            <button class="mode-btn active" onclick="setMode('record')" id="modeRecBtn">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px;"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg>
+              Record Live
             </button>
-            <button class="btn btn-outline" onclick="resetAll()">Record Again</button>
+            <button class="mode-btn" onclick="setMode('upload')" id="modeUpBtn">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              Upload File
+            </button>
           </div>
-        </div>
 
-        <!-- Sending -->
-        <div class="sending" id="sendingUI">
-          <div class="spinner"></div>
-          <div style="font-size:0.88rem; color:var(--ceq-text); font-weight:600;" id="sendingText">Sending to CEQ platform...</div>
-          <div style="font-size:0.78rem; color:var(--ceq-text-light); margin-top:6px;">Your recording will be transcribed and critiqued against CEQ frameworks.</div>
-        </div>
-
-        <!-- Success -->
-        <div class="success" id="successUI">
-          <div class="check">
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          <!-- Record type toggle: Audio / Video -->
+          <div class="record-type-toggle" id="recordTypeToggle">
+            <button class="record-type-btn active" id="typeAudioBtn" onclick="setRecordType('audio')">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg>
+              Audio Only
+            </button>
+            <button class="record-type-btn" id="typeVideoBtn" onclick="setRecordType('video')">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+              Video
+            </button>
           </div>
-          <h3>Recording sent successfully!</h3>
-          <p>Your recording is being transcribed and analysed against CEQ coaching frameworks. You'll find the results in your Record Portal history.</p>
-          <div class="redirect-note" id="redirectNote">Returning to the platform in <span id="redirectCountdown">5</span>s...</div>
-          <div style="margin-top:14px; display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
-            <button class="btn btn-primary" onclick="goToApp()">Go to Record Portal Now</button>
-            <button class="btn btn-outline" onclick="cancelRedirectAndReset()">Record Another</button>
-          </div>
-        </div>
 
+          <!-- Practice video title (shown for video mode) -->
+          <div class="practice-title-row" id="practiceTitleRow">
+            <div class="practice-title-label">Practice video title</div>
+            <input type="text" class="practice-title-input" id="practiceTitleInput" placeholder="e.g. Coaching session with Sarah — GROW practice">
+          </div>
+
+          <!-- Video preview (shown when video mode is active) -->
+          <div class="video-preview-container" id="videoPreviewContainer">
+            <video class="video-preview" id="videoPreview" autoplay muted playsinline></video>
+          </div>
+
+          <!-- Live Recorder -->
+          <div class="recorder" id="recorderUI">
+            <div class="visualiser" id="visualiser"></div>
+            <button class="rec-btn" id="recBtn" onclick="toggleRecording()">
+              <div class="dot"></div>
+            </button>
+            <div class="timer" id="timer">00:00</div>
+            <div class="status" id="recStatus">Tap to start recording</div>
+          </div>
+
+          <!-- Upload fallback -->
+          <div class="upload-area" id="uploadUI" onclick="document.getElementById('fileInput').click()">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--ceq-text-light)" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <p style="margin:10px 0 4px; font-size:0.88rem; color:var(--ceq-text);">Tap to choose a file</p>
+            <p style="font-size:0.75rem; color:var(--ceq-text-light);">Audio or video — mp3, mp4, wav, m4a, mov, webm, ogg</p>
+            <input type="file" id="fileInput" accept="audio/*,video/*" style="display:none" onchange="handleFileUpload(this)">
+          </div>
+
+          <!-- Result -->
+          <div class="result" id="resultUI">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            <div class="filename" id="resultName"></div>
+            <div class="filesize" id="resultSize"></div>
+            <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+              <button class="btn btn-primary" onclick="sendToApp()" id="sendBtn">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:6px;"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                Send for Transcription &amp; Critique
+              </button>
+              <button class="btn btn-outline" onclick="resetAll()">Record Again</button>
+            </div>
+          </div>
+
+          <!-- Sending -->
+          <div class="sending" id="sendingUI">
+            <div class="spinner"></div>
+            <div style="font-size:0.88rem; color:var(--ceq-text); font-weight:600;" id="sendingText">Sending to CEQ platform...</div>
+            <div style="font-size:0.78rem; color:var(--ceq-text-light); margin-top:6px;">Your recording will be transcribed and critiqued against CEQ frameworks.</div>
+          </div>
+
+          <!-- Success -->
+          <div class="success" id="successUI">
+            <div class="check">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <h3 id="successTitle">Recording sent successfully!</h3>
+            <p id="successDesc">Your recording is being transcribed and analysed against CEQ coaching frameworks. You'll find the results in your Record Portal history.</p>
+            <div class="redirect-note" id="redirectNote">Returning to the platform in <span id="redirectCountdown">5</span>s...</div>
+            <div style="margin-top:14px; display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+              <button class="btn btn-primary" onclick="goToApp()">Go to Record Portal Now</button>
+              <button class="btn btn-outline" onclick="cancelRedirectAndReset()">Record Another</button>
+            </div>
+          </div>
+
+        </div>
       </div>
     </div>
-  </div>
 
-  <div class="footer-info">
-    CEQ AI Coaching Platform &middot; Your recording is processed securely and only visible to you.
+    <div class="footer-info">
+      Collaborative Equity &copy; 2026 &middot; Your recording is processed securely and only visible to you.
+    </div>
   </div>
 
 <script>
   // ─── Config ───
-  // This page must be hosted OUTSIDE of Google Apps Script (e.g. GitHub Pages)
-  // to bypass GAS iframe microphone restrictions.
-  // The GAS web app URL is passed via ?app= query parameter.
   var GAS_APP_URL = '';
 
   // ─── State ───
   var mode = 'record';
+  var recordType = 'audio';  // 'audio' or 'video'
   var mediaRecorder = null;
   var audioChunks = [];
   var recording = false;
@@ -488,6 +708,7 @@
   var audioStream = null;
   var analyser = null;
   var redirectTimer = null;
+  var videoStream = null;
 
   // ─── Read GAS app URL from query params ───
   (function() {
@@ -497,6 +718,40 @@
     } catch(e) {}
   })();
 
+  // ─── Record type toggle (Audio / Video) ───
+  function setRecordType(type) {
+    if (recording) return; // Don't switch while recording
+    recordType = type;
+    document.getElementById('typeAudioBtn').classList.toggle('active', type === 'audio');
+    document.getElementById('typeVideoBtn').classList.toggle('active', type === 'video');
+    document.getElementById('videoPreviewContainer').classList.toggle('visible', type === 'video');
+    document.getElementById('practiceTitleRow').classList.toggle('visible', type === 'video');
+    // Show/hide audio visualiser
+    document.getElementById('visualiser').style.display = type === 'audio' ? 'flex' : 'none';
+
+    // Stop any existing camera preview
+    if (videoStream) {
+      videoStream.getTracks().forEach(function(t) { t.stop(); });
+      videoStream = null;
+    }
+
+    if (type === 'video' && mode === 'record') {
+      startCameraPreview();
+    }
+  }
+
+  function startCameraPreview() {
+    var video = document.getElementById('videoPreview');
+    navigator.mediaDevices.getUserMedia({ video: true, audio: false })
+      .then(function(stream) {
+        videoStream = stream;
+        video.srcObject = stream;
+      })
+      .catch(function(err) {
+        console.log('Camera preview failed:', err);
+      });
+  }
+
   // ─── Mode toggle ───
   function setMode(m) {
     mode = m;
@@ -505,6 +760,15 @@
     document.getElementById('recorderUI').style.display = m === 'record' ? 'block' : 'none';
     document.getElementById('uploadUI').style.display = m === 'upload' ? 'block' : 'none';
     document.getElementById('resultUI').style.display = 'none';
+    // Show record type toggle only in record mode
+    document.getElementById('recordTypeToggle').style.display = m === 'record' ? 'flex' : 'none';
+    // Show video preview and title if in video mode
+    document.getElementById('videoPreviewContainer').classList.toggle('visible', m === 'record' && recordType === 'video');
+    document.getElementById('practiceTitleRow').classList.toggle('visible', m === 'record' && recordType === 'video');
+    // Start camera preview if switching to record + video
+    if (m === 'record' && recordType === 'video' && !videoStream) {
+      startCameraPreview();
+    }
   }
 
   // ─── Visualiser setup ───
@@ -541,21 +805,41 @@
       return;
     }
 
-    navigator.mediaDevices.getUserMedia({ audio: true }).then(function(stream) {
+    var constraints = recordType === 'video'
+      ? { audio: true, video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } } }
+      : { audio: true };
+
+    navigator.mediaDevices.getUserMedia(constraints).then(function(stream) {
       audioStream = stream;
       audioChunks = [];
 
-      // Audio analyser for visualisation
-      try {
-        var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        var source = audioCtx.createMediaStreamSource(stream);
-        analyser = audioCtx.createAnalyser();
-        analyser.fftSize = 128;
-        source.connect(analyser);
-      } catch(e) { analyser = null; }
+      // For video, show the stream in the preview
+      if (recordType === 'video') {
+        var videoEl = document.getElementById('videoPreview');
+        videoEl.srcObject = stream;
+        videoEl.classList.add('recording-active');
+        // Stop the old preview-only stream if it exists
+        if (videoStream && videoStream !== stream) {
+          videoStream.getTracks().forEach(function(t) { t.stop(); });
+        }
+        videoStream = stream;
+      }
+
+      // Audio analyser for visualisation (audio mode only)
+      if (recordType === 'audio') {
+        try {
+          var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+          var source = audioCtx.createMediaStreamSource(stream);
+          analyser = audioCtx.createAnalyser();
+          analyser.fftSize = 128;
+          source.connect(analyser);
+        } catch(e) { analyser = null; }
+      }
 
       // Choose best MIME type
-      var mimeOptions = ['audio/webm;codecs=opus', 'audio/webm', 'audio/ogg;codecs=opus', 'audio/mp4', ''];
+      var mimeOptions = recordType === 'video'
+        ? ['video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm', 'video/mp4', '']
+        : ['audio/webm;codecs=opus', 'audio/webm', 'audio/ogg;codecs=opus', 'audio/mp4', ''];
       var selectedMime = '';
       for (var i = 0; i < mimeOptions.length; i++) {
         if (mimeOptions[i] === '' || MediaRecorder.isTypeSupported(mimeOptions[i])) {
@@ -569,8 +853,12 @@
         if (e.data.size > 0) audioChunks.push(e.data);
       };
       mediaRecorder.onstop = function() {
-        audioBlob = new Blob(audioChunks, { type: selectedMime || 'audio/webm' });
+        audioBlob = new Blob(audioChunks, { type: selectedMime || (recordType === 'video' ? 'video/webm' : 'audio/webm') });
         stream.getTracks().forEach(function(t) { t.stop(); });
+        videoStream = null;
+        if (recordType === 'video') {
+          document.getElementById('videoPreview').classList.remove('recording-active');
+        }
         showResult();
       };
 
@@ -584,13 +872,13 @@
       document.getElementById('recStatus').className = 'status recording';
       document.getElementById('recStatus').textContent = 'Recording... tap to stop';
 
-      if (analyser) updateVisualiser();
+      if (analyser && recordType === 'audio') updateVisualiser();
 
     }).catch(function(err) {
       if (err.name === 'NotAllowedError') {
-        alert('Microphone access was denied. Please allow microphone access in your browser settings and try again.');
+        alert((recordType === 'video' ? 'Camera and microphone' : 'Microphone') + ' access was denied. Please allow access in your browser settings and try again.');
       } else {
-        alert('Could not access microphone: ' + err.message);
+        alert('Could not access ' + (recordType === 'video' ? 'camera' : 'microphone') + ': ' + err.message);
       }
     });
   }
@@ -644,58 +932,69 @@
   function sendToApp() {
     if (!audioBlob) return;
 
+    // Determine if this is a video (goes to Practice Videos) or audio (goes to Record Portal)
+    var isVideo = recordType === 'video' || (audioBlob.type && audioBlob.type.indexOf('video') === 0);
+    var practiceTitle = '';
+    if (isVideo) {
+      practiceTitle = (document.getElementById('practiceTitleInput').value || '').trim() || 'Practice recording ' + new Date().toISOString().slice(0,10);
+    }
+
     document.getElementById('resultUI').style.display = 'none';
     document.getElementById('sendingUI').style.display = 'block';
-    document.getElementById('sendingText').textContent = 'Preparing recording...';
+    document.getElementById('sendingText').textContent = isVideo ? 'Uploading video to CEQ platform...' : 'Preparing recording...';
 
     var reader = new FileReader();
     reader.onloadend = function() {
       var base64 = reader.result.split(',')[1];
-      var mimeType = audioBlob.type || 'audio/webm';
+      var mimeType = audioBlob.type || (isVideo ? 'video/webm' : 'audio/webm');
 
-      document.getElementById('sendingText').textContent = 'Sending to CEQ platform for transcription...';
+      if (!isVideo) {
+        document.getElementById('sendingText').textContent = 'Sending to CEQ platform for transcription...';
+      }
+
+      var payload = isVideo ? {
+        action: 'uploadPracticeVideo',
+        video: base64,
+        mimeType: mimeType,
+        duration: seconds,
+        title: practiceTitle,
+        userEmail: ''
+      } : {
+        action: 'uploadRecording',
+        audio: base64,
+        mimeType: mimeType,
+        duration: seconds,
+        coacheeName: 'Standalone Recording',
+        userEmail: ''
+      };
 
       if (GAS_APP_URL) {
         fetch(GAS_APP_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain' },
           redirect: 'follow',
-          body: JSON.stringify({
-            action: 'uploadRecording',
-            audio: base64,
-            mimeType: mimeType,
-            duration: seconds,
-            coacheeName: 'Standalone Recording',
-            userEmail: ''
-          })
+          body: JSON.stringify(payload)
         }).then(function(resp) {
           return resp.json();
         }).then(function(data) {
           if (data && data.success) {
-            showSuccessAndRedirect();
+            showSuccessAndRedirect(isVideo);
           } else {
             document.getElementById('sendingText').textContent = (data && data.error) || 'Upload issue — downloading instead...';
-            setTimeout(function() { downloadRecording(); showSuccessAndRedirect(); }, 1500);
+            setTimeout(function() { downloadRecording(); showSuccessAndRedirect(isVideo); }, 1500);
           }
         }).catch(function() {
-          // CORS fallback with no-cors — data is sent but we can't read the response
+          // CORS fallback with no-cors
           fetch(GAS_APP_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'text/plain' },
-            body: JSON.stringify({
-              action: 'uploadRecording',
-              audio: base64,
-              mimeType: mimeType,
-              duration: seconds,
-              coacheeName: 'Standalone Recording',
-              userEmail: ''
-            }),
+            body: JSON.stringify(payload),
             mode: 'no-cors'
-          }).then(function() { showSuccessAndRedirect(); }).catch(function() { downloadRecording(); showSuccessAndRedirect(); });
+          }).then(function() { showSuccessAndRedirect(isVideo); }).catch(function() { downloadRecording(); showSuccessAndRedirect(isVideo); });
         });
       } else {
         downloadRecording();
-        showSuccessAndRedirect();
+        showSuccessAndRedirect(isVideo);
       }
     };
     reader.readAsDataURL(audioBlob);
@@ -714,11 +1013,21 @@
   }
 
   // ─── Success + Auto-redirect ───
-  function showSuccessAndRedirect() {
+  var lastSendWasVideo = false;
+
+  function showSuccessAndRedirect(isVideo) {
+    lastSendWasVideo = !!isVideo;
     document.getElementById('sendingUI').style.display = 'none';
     document.getElementById('successUI').style.display = 'block';
 
-    // Auto-redirect countdown
+    if (isVideo) {
+      document.getElementById('successTitle').textContent = 'Practice video uploaded!';
+      document.getElementById('successDesc').textContent = "Your video has been saved to the platform. You'll find it in the Practice Videos section for review.";
+    } else {
+      document.getElementById('successTitle').textContent = 'Recording sent successfully!';
+      document.getElementById('successDesc').textContent = "Your recording is being transcribed and analysed against CEQ coaching frameworks. You'll find the results in your Record Portal history.";
+    }
+
     var countdownSeconds = 5;
     var countdownEl = document.getElementById('redirectCountdown');
     countdownEl.textContent = countdownSeconds;
@@ -736,7 +1045,9 @@
   function goToApp() {
     if (redirectTimer) clearInterval(redirectTimer);
     if (GAS_APP_URL) {
-      window.location.href = GAS_APP_URL + '?page=conversations';
+      // Video goes to Practice page, audio goes to Record Portal
+      var page = lastSendWasVideo ? 'practice' : 'conversations';
+      window.location.href = GAS_APP_URL + '?page=' + page;
     } else {
       alert('Please open the CEQ platform from your bookmarks or the link you were given.');
     }
@@ -756,6 +1067,14 @@
     recording = false;
     clearInterval(timerInterval);
 
+    // Stop video stream if active
+    if (videoStream) {
+      videoStream.getTracks().forEach(function(t) { t.stop(); });
+      videoStream = null;
+    }
+    document.getElementById('videoPreview').classList.remove('recording-active');
+    document.getElementById('videoPreview').srcObject = null;
+
     document.getElementById('recBtn').classList.remove('recording');
     document.getElementById('recStatus').className = 'status';
     document.getElementById('recStatus').textContent = 'Tap to start recording';
@@ -766,6 +1085,10 @@
     document.getElementById('fileInput').value = '';
 
     setMode(mode);
+    // Restart camera preview if in video mode
+    if (recordType === 'video' && mode === 'record') {
+      startCameraPreview();
+    }
   }
 </script>
 </body>
