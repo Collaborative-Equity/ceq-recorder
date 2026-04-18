@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ARIA Voice Input</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #faf8f4;
+    color: #030231;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 20px;
+  }
+  .recorder-card {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.1);
+    padding: 32px;
+    max-width: 340px;
+    width: 100%;
+    text-align: center;
+  }
+  .recorder-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #030231;
+    margin-bottom: 4px;
+  }
+  .recorder-subtitle {
+    font-size: 0.82rem;
+    color: #6b7280;
+    margin-bottom: 24px;
+    line-height: 1.5;
+  }
+  .mic-btn {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    border: 3px solid #e5e7eb;
+    background: #fff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+    transition: all 0.3s;
+  }
+  .mic-btn:hover { border-color: #030231; background: rgba(3,2,49,0.03); }
+  .mic-btn.recording {
+    border-color: #dc2626;
+    background: #dc2626;
+    animation: rec-pulse 1.2s ease-in-out infinite;
+  }
+  .mic-btn.recording svg { stroke: #fff; }
+  .mic-btn.done {
+    border-color: #c8a050;
+    background: rgba(200,160,80,0.1);
+    pointer-events: none;
+  }
+  .mic-btn.done svg { stroke: #c8a050; }
+  @keyframes rec-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(220,38,38,0.4); }
+    50% { box-shadow: 0 0 0 12px rgba(220,38,38,0); }
+  }
+  .status-text {
+    font-size: 0.88rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+    min-height: 1.4em;
+  }
+  .status-hint {
+    font-size: 0.75rem;
+    color: #9ca3af;
+    margin-bottom: 16px;
+  }
+  .timer {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: #dc2626;
+    margin-bottom: 8px;
+    font-variant-numeric: tabular-nums;
+    display: none;
+  }
+  .timer.visible { display: block; }
+  .cancel-btn {
+    display: inline-block;
+    padding: 8px 20px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background: #fff;
+    color: #6b7280;
+    font-size: 0.82rem;
+    cursor: pointer;
+    transition: all 0.15s;
+    margin-top: 8px;
+  }
+  .cancel-btn:hover { border-color: #9ca3af; color: #374151; }
+  .error-text {
+    color: #dc2626;
+    font-size: 0.82rem;
+    margin-top: 12px;
+    line-height: 1.5;
+  }
+</style>
+</head>
+<body>
+
+<div class="recorder-card">
+  <div class="recorder-title">ARIA Voice Input</div>
+  <div class="recorder-subtitle">Tap the microphone to start recording, tap again to stop.</div>
+
+  <div class="timer" id="timer">0:00</div>
+
+  <button class="mic-btn" id="micBtn" onclick="toggleRecording()">
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#030231" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+      <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+      <line x1="12" y1="19" x2="12" y2="23"/>
+      <line x1="8" y1="23" x2="16" y2="23"/>
+    </svg>
+  </button>
+
+  <div class="status-text" id="statusText">Ready to record</div>
+  <div class="status-hint" id="statusHint">Maximum 60 seconds</div>
+
+  <button class="cancel-btn" id="cancelBtn" onclick="cancelAndClose()">Cancel</button>
+
+  <div class="error-text" id="errorText" style="display:none;"></div>
+</div>
+
+<script>
+  var recorder = null;
+  var stream = null;
+  var chunks = [];
+  var recording = false;
+  var timerInterval = null;
+  var startTime = 0;
+
+  function toggleRecording() {
+    if (recording) {
+      stopRecording();
+    } else {
+      startRecording();
+    }
+  }
+
+  function startRecording() {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      showError('Your browser does not support microphone access.');
+      return;
+    }
+
+    navigator.mediaDevices.getUserMedia({ audio: true })
+      .then(function(s) {
+        stream = s;
+        chunks = [];
+
+        var mimeType = 'audio/webm';
+        if (typeof MediaRecorder !== 'undefined') {
+          if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
+            mimeType = 'audio/webm;codecs=opus';
+          } else if (MediaRecorder.isTypeSupported('audio/mp4')) {
+            mimeType = 'audio/mp4';
+          } else if (MediaRecorder.isTypeSupported('audio/ogg')) {
+            mimeType = 'audio/ogg';
+          }
+        }
+
+        recorder = new MediaRecorder(s, { mimeType: mimeType });
+        recorder.ondataavailable = function(e) {
+          if (e.data && e.data.size > 0) chunks.push(e.data);
+        };
+        recorder.onstop = function() {
+          stream.getTracks().forEach(function(t) { t.stop(); });
+          processRecording(mimeType);
+        };
+
+        recorder.start(250);
+        recording = true;
+        startTime = Date.now();
+
+        var btn = document.getElementById('micBtn');
+        btn.classList.add('recording');
+
+        var timerEl = document.getElementById('timer');
+        timerEl.classList.add('visible');
+
+        document.getElementById('statusText').textContent = 'Recording... tap to stop';
+        document.getElementById('statusHint').textContent = '';
+        document.getElementById('cancelBtn').textContent = 'Cancel';
+
+        timerInterval = setInterval(function() {
+          var elapsed = Math.floor((Date.now() - startTime) / 1000);
+          var mins = Math.floor(elapsed / 60);
+          var secs = elapsed % 60;
+          timerEl.textContent = mins + ':' + (secs < 10 ? '0' : '') + secs;
+          if (elapsed >= 60) {
+            stopRecording();
+          }
+        }, 200);
+      })
+      .catch(function(err) {
+        if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+          showError('Microphone access was denied. Please allow access in your browser settings.');
+        } else {
+          showError('Could not access microphone: ' + err.message);
+        }
+      });
+  }
+
+  function stopRecording() {
+    if (!recording) return;
+    recording = false;
+    if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+    if (recorder && recorder.state !== 'inactive') {
+      recorder.stop();
+    }
+  }
+
+  function processRecording(mimeType) {
+    var btn = document.getElementById('micBtn');
+    btn.classList.remove('recording');
+    btn.classList.add('done');
+    btn.innerHTML = '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#c8a050" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>';
+
+    document.getElementById('statusText').textContent = 'Sending to ARIA...';
+    document.getElementById('statusHint').textContent = 'This takes a few seconds';
+    document.getElementById('cancelBtn').style.display = 'none';
+
+    var blob = new Blob(chunks, { type: mimeType });
+    var reader = new FileReader();
+    reader.onloadend = function() {
+      var base64 = reader.result.split(',')[1];
+      var sendMime = mimeType.split(';')[0];
+
+      // Send audio data back to the parent window
+      if (window.opener) {
+        window.opener.postMessage({
+          type: 'aria-voice-audio',
+          base64: base64,
+          mimeType: sendMime
+        }, '*');
+        document.getElementById('statusText').textContent = 'Sent! Transcribing...';
+        document.getElementById('statusHint').textContent = 'This window will close automatically';
+      } else {
+        showError('Lost connection to ARIA. Please close this window and try again.');
+      }
+    };
+    reader.readAsDataURL(blob);
+  }
+
+  function cancelAndClose() {
+    if (recording) {
+      recording = false;
+      if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+      if (recorder && recorder.state !== 'inactive') {
+        recorder.onstop = function() {
+          if (stream) stream.getTracks().forEach(function(t) { t.stop(); });
+        };
+        recorder.stop();
+      }
+    }
+    if (window.opener) {
+      window.opener.postMessage({ type: 'aria-voice-cancel' }, '*');
+    }
+    window.close();
+  }
+
+  function showError(msg) {
+    var el = document.getElementById('errorText');
+    el.textContent = msg;
+    el.style.display = 'block';
+  }
+
+  // Listen for close signal from parent
+  window.addEventListener('message', function(e) {
+    if (e.data && e.data.type === 'aria-voice-close') {
+      window.close();
+    }
+  });
+
+  // Auto-close if parent window is closed
+  var parentCheck = setInterval(function() {
+    if (window.opener && window.opener.closed) {
+      clearInterval(parentCheck);
+      window.close();
+    }
+  }, 1000);
+</script>
+
+</body>
+</html>
