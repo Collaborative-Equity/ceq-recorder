@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CEQ AI Coaching Platform — Session Cycle Recorder</title>
+  <style>
+    :root {
+      --ceq-blue:        #030231;
+      --ceq-blue-light:  #0e0d4a;
+      --ceq-blue-dark:   #010120;
+      --ceq-orange:      #b66611;
+      --ceq-orange-light:#cc7a22;
+      --ceq-cream:       #faf7f3;
+      --ceq-cream-dark:  #f0ebe3;
+      --ceq-text:        #2c2c2c;
+      --ceq-text-light:  #6b6b6b;
+      --ceq-white:       #ffffff;
+      --ceq-border:      #e2ded6;
+      --ceq-shadow:      0 1px 3px rgba(0,0,0,0.08);
+      --ceq-shadow-lg:   0 4px 12px rgba(0,0,0,0.10);
+      --font:            'Segoe UI', -apple-system, BlinkMacSystemFont, Tahoma, Geneva, Verdana, sans-serif;
+      --radius:          8px;
+      --radius-lg:       12px;
+      --header-height:   64px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 16px; -webkit-font-smoothing: antialiased; }
+    body { font-family: var(--font); background: var(--ceq-cream); color: var(--ceq-text); min-height: 100vh; display: flex; flex-direction: column; }
+
+    .top-bar { height: var(--header-height); background: var(--ceq-white); border-bottom: 1px solid var(--ceq-border); display: flex; align-items: center; justify-content: space-between; padding: 0 24px; position: sticky; top: 0; z-index: 50; }
+    .top-bar-left { display: flex; align-items: center; gap: 14px; }
+    .top-bar-brand { display: flex; align-items: center; gap: 10px; }
+    .top-bar-brand h1 { font-size: 1.3rem; font-weight: 800; color: var(--ceq-blue); letter-spacing: -0.02em; }
+    .top-bar-brand .brand-sub { font-size: 0.68rem; color: var(--ceq-text-light); text-transform: uppercase; letter-spacing: 0.04em; font-weight: 500; }
+    .top-bar-title { font-size: 1.05rem; font-weight: 600; color: var(--ceq-blue); padding-left: 14px; border-left: 1.5px solid var(--ceq-border); }
+
+    .main-area { flex: 1; display: flex; justify-content: center; padding: 32px 20px 48px; }
+    .recorder-card { width: 100%; max-width: 520px; }
+
+    .info-banner { background: linear-gradient(135deg, var(--ceq-blue) 0%, #1a1952 100%); color: #fff; border-radius: var(--radius-lg) var(--radius-lg) 0 0; padding: 24px; }
+    .info-banner h2 { font-size: 1.05rem; font-weight: 700; margin-bottom: 8px; }
+    .info-banner p { font-size: 0.82rem; line-height: 1.55; opacity: 0.9; }
+    .info-banner .steps { margin-top: 16px; display: flex; gap: 20px; }
+    .info-banner .step { display: flex; align-items: flex-start; gap: 10px; flex: 1; }
+    .info-banner .step-num { min-width: 24px; height: 24px; background: rgba(255,255,255,0.15); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.7rem; margin-top: 1px; }
+    .info-banner .step-text { font-size: 0.75rem; line-height: 1.45; opacity: 0.85; }
+    .info-banner .step-text strong { display: block; opacity: 1; font-size: 0.78rem; margin-bottom: 2px; }
+
+    .sync-note { background: linear-gradient(135deg, #fff8ec 0%, #fdf2e0 100%); border: 1px solid #e8d4a0; border-left: 4px solid #c9a961; border-radius: 0 var(--radius) var(--radius) 0; padding: 12px 16px; margin: 0 0 0 0; font-size: 0.78rem; color: #6a5520; line-height: 1.5; }
+    .sync-note strong { color: #4a3a10; }
+
+    .card-body { background: var(--ceq-white); border-radius: 0 0 var(--radius-lg) var(--radius-lg); box-shadow: var(--ceq-shadow-lg); padding: 22px 24px 28px; }
+    .card-body .sync-note { margin-bottom: 18px; }
+
+    .mode-toggle { display: flex; gap: 0; border: 1.5px solid var(--ceq-border); border-radius: var(--radius); overflow: hidden; margin-bottom: 20px; }
+    .mode-btn { flex: 1; padding: 10px; border: none; background: #fff; font-family: var(--font); font-size: 0.82rem; font-weight: 600; color: var(--ceq-text-light); cursor: pointer; transition: all 0.15s; }
+    .mode-btn.active { background: var(--ceq-blue); color: #fff; }
+
+    .recorder { text-align: center; padding: 16px 0; }
+    .rec-btn { width: 80px; height: 80px; border-radius: 50%; border: 3px solid var(--ceq-border); background: #fff; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s; }
+    .rec-btn:hover { border-color: #ef4444; }
+    .rec-btn.recording { border-color: #ef4444; animation: pulse 1.5s infinite; }
+    .rec-btn .dot { width: 28px; height: 28px; border-radius: 50%; background: #ef4444; transition: all 0.2s; }
+    .rec-btn.recording .dot { width: 20px; height: 20px; border-radius: 4px; }
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.3); }
+      50% { box-shadow: 0 0 0 12px rgba(239,68,68,0); }
+    }
+    .timer { font-size: 1.8rem; font-weight: 300; font-variant-numeric: tabular-nums; margin: 14px 0 6px; color: var(--ceq-text); }
+    .status { font-size: 0.82rem; color: var(--ceq-text-light); }
+    .status.recording { color: #ef4444; font-weight: 600; }
+
+    .visualiser { height: 40px; margin: 12px 0; display: flex; align-items: center; justify-content: center; gap: 2px; }
+    .visualiser .bar { width: 3px; background: var(--ceq-orange); border-radius: 2px; transition: height 0.1s; height: 4px; }
+
+    .result { display: none; text-align: center; padding: 16px 0; }
+    .result .filename { font-size: 0.85rem; color: var(--ceq-blue); font-weight: 600; margin-bottom: 4px; }
+    .result .filesize { font-size: 0.75rem; color: var(--ceq-text-light); margin-bottom: 16px; }
+
+    .upload-area { border: 2px dashed var(--ceq-border); border-radius: var(--radius); padding: 28px; text-align: center; cursor: pointer; transition: border-color 0.15s; display: none; }
+    .upload-area:hover { border-color: var(--ceq-blue); }
+
+    .btn { display: inline-block; padding: 12px 28px; border: none; border-radius: var(--radius); font-family: var(--font); font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-primary { background: var(--ceq-blue); color: #fff; }
+    .btn-primary:hover { background: var(--ceq-blue-light); }
+    .btn-outline { background: transparent; border: 1.5px solid var(--ceq-border); color: var(--ceq-text); }
+    .btn-outline:hover { background: var(--ceq-cream); }
+
+    .sending { display: none; text-align: center; padding: 24px 0; }
+    .sending .spinner { width: 36px; height: 36px; border: 3px solid var(--ceq-border); border-top-color: var(--ceq-blue); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 14px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .success { display: none; text-align: center; padding: 24px 0; }
+    .success .check { width: 52px; height: 52px; background: #22c55e; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 14px; }
+    .success h3 { font-size: 1rem; margin-bottom: 6px; color: var(--ceq-text); }
+    .success p { font-size: 0.82rem; color: var(--ceq-text-light); line-height: 1.5; }
+
+    .footer-info { text-align: center; padding: 16px 20px 32px; font-size: 0.72rem; color: var(--ceq-text-light); }
+
+    @media (max-width: 600px) {
+      .top-bar { padding: 0 16px; }
+      .top-bar-title { display: none; }
+      .main-area { padding: 16px 12px 32px; }
+      .info-banner .steps { flex-direction: column; gap: 10px; }
+      .card-body { padding: 18px 16px 22px; }
+    }
+    @media print {
+      body { padding: 0; background: #fff; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="top-bar">
+    <div class="top-bar-left">
+      <div class="top-bar-brand">
+        <div>
+          <h1>CEQ</h1>
+          <div class="brand-sub">AI Coaching Platform</div>
+        </div>
+      </div>
+      <div class="top-bar-title">Session Cycle · Live 1:1 Recorder</div>
+    </div>
+  </header>
+
+  <div class="main-area">
+    <div class="recorder-card">
+
+      <div class="info-banner">
+        <h2 id="infoTitle">Record your live 1:1</h2>
+        <p id="infoBody">Record the conversation here. ARIA will transcribe it, summarise the key threads, and pull out action points for your Session Cycle tracker.</p>
+        <div class="steps">
+          <div class="step">
+            <div class="step-num">1</div>
+            <div class="step-text"><strong>Record or upload</strong>Capture your one-to-one conversation in the controls below.</div>
+          </div>
+          <div class="step">
+            <div class="step-num">2</div>
+            <div class="step-text"><strong>ARIA transcribes</strong>Your recording is transcribed using speech-to-text.</div>
+          </div>
+          <div class="step">
+            <div class="step-num">3</div>
+            <div class="step-text"><strong>ARIA summarises</strong>Key threads, watch-outs, and action points are extracted to feed your Session Cycle.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-body">
+
+        <div class="sync-note">
+          <strong>A copy is also saved to your Conversation History.</strong> So you can revisit the recording in Recording &amp; Critique later if you want a full coaching critique on it.
+        </div>
+
+        <div class="mode-toggle">
+          <button class="mode-btn active" onclick="setMode('record')" id="modeRecBtn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px;"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg>
+            Record Live
+          </button>
+          <button class="mode-btn" onclick="setMode('upload')" id="modeUpBtn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            Upload File
+          </button>
+        </div>
+
+        <div class="recorder" id="recorderUI">
+          <div class="visualiser" id="visualiser"></div>
+          <button class="rec-btn" id="recBtn" onclick="toggleRecording()">
+            <div class="dot"></div>
+          </button>
+          <div class="timer" id="timer">00:00</div>
+          <div class="status" id="recStatus">Tap to start recording</div>
+        </div>
+
+        <div class="upload-area" id="uploadUI" onclick="document.getElementById('fileInput').click()">
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--ceq-text-light)" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          <p style="margin:10px 0 4px; font-size:0.88rem; color:var(--ceq-text);">Tap to choose a file</p>
+          <p style="font-size:0.75rem; color:var(--ceq-text-light);">Audio file — mp3, wav, m4a, webm, ogg</p>
+          <input type="file" id="fileInput" accept="audio/*" style="display:none" onchange="handleFileUpload(this)">
+        </div>
+
+        <div class="result" id="resultUI">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          <div class="filename" id="resultName"></div>
+          <div class="filesize" id="resultSize"></div>
+          <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+            <button class="btn btn-primary" onclick="sendToApp()" id="sendBtn">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:6px;"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              Send to ARIA
+            </button>
+            <button class="btn btn-outline" onclick="resetAll()">Record Again</button>
+          </div>
+        </div>
+
+        <div class="sending" id="sendingUI">
+          <div class="spinner"></div>
+          <div style="font-size:0.88rem; color:var(--ceq-text); font-weight:600;" id="sendingText">Preparing recording...</div>
+          <div style="font-size:0.78rem; color:var(--ceq-text-light); margin-top:6px;">A local copy is being saved to your computer as a safety net.</div>
+        </div>
+
+        <div class="success" id="successUI">
+          <div class="check">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <h3 id="successTitle">Sent to ARIA</h3>
+          <p id="successBody">You can close this window. ARIA is transcribing and summarising the recording now, and will also save a copy to your Conversation History.</p>
+          <div style="margin-top:14px;">
+            <button class="btn btn-outline" onclick="window.close()">Close window</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-info">
+    CEQ AI Coaching Platform &middot; Session Cycle Recorder &middot; Your recording is processed securely and only visible to you.
+  </div>
+
+<script>
+  // ─── State ───
+  var mode = 'record';
+  var mediaRecorder = null;
+  var audioChunks = [];
+  var recording = false;
+  var seconds = 0;
+  var timerInterval = null;
+  var audioBlob = null;
+  var audioStream = null;
+  var analyser = null;
+
+  // ─── Listen for opener close request ───
+  window.addEventListener('message', function(e) {
+    if (e && e.data && e.data.type === 'aria-voice-close') {
+      try { window.close(); } catch(err) {}
+    }
+  });
+
+  // ─── Mode toggle ───
+  function setMode(m) {
+    mode = m;
+    document.getElementById('modeRecBtn').classList.toggle('active', m === 'record');
+    document.getElementById('modeUpBtn').classList.toggle('active', m === 'upload');
+    document.getElementById('recorderUI').style.display = m === 'record' ? 'block' : 'none';
+    document.getElementById('uploadUI').style.display = m === 'upload' ? 'block' : 'none';
+    document.getElementById('resultUI').style.display = 'none';
+  }
+
+  // ─── Visualiser setup ───
+  (function() {
+    var vis = document.getElementById('visualiser');
+    for (var i = 0; i < 32; i++) {
+      var bar = document.createElement('div');
+      bar.className = 'bar';
+      vis.appendChild(bar);
+    }
+  })();
+
+  function updateVisualiser() {
+    if (!analyser) return;
+    var data = new Uint8Array(analyser.frequencyBinCount);
+    analyser.getByteFrequencyData(data);
+    var bars = document.querySelectorAll('.visualiser .bar');
+    var step = Math.floor(data.length / bars.length);
+    for (var i = 0; i < bars.length; i++) {
+      var val = data[i * step] / 255;
+      bars[i].style.height = Math.max(4, val * 36) + 'px';
+    }
+    if (recording) requestAnimationFrame(updateVisualiser);
+  }
+
+  // ─── Recording ───
+  function toggleRecording() {
+    if (!recording) { startRecording(); } else { stopRecording(); }
+  }
+
+  function startRecording() {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      alert('Recording is not supported in this browser. Please use a modern browser like Chrome or Safari.');
+      return;
+    }
+    navigator.mediaDevices.getUserMedia({ audio: true }).then(function(stream) {
+      audioStream = stream;
+      audioChunks = [];
+      try {
+        var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        var source = audioCtx.createMediaStreamSource(stream);
+        analyser = audioCtx.createAnalyser();
+        analyser.fftSize = 128;
+        source.connect(analyser);
+      } catch(e) { analyser = null; }
+
+      var mimeOptions = ['audio/webm;codecs=opus', 'audio/webm', 'audio/ogg;codecs=opus', 'audio/mp4', ''];
+      var selectedMime = '';
+      for (var i = 0; i < mimeOptions.length; i++) {
+        if (mimeOptions[i] === '' || MediaRecorder.isTypeSupported(mimeOptions[i])) {
+          selectedMime = mimeOptions[i];
+          break;
+        }
+      }
+      mediaRecorder = new MediaRecorder(stream, selectedMime ? { mimeType: selectedMime } : {});
+      mediaRecorder.ondataavailable = function(e) {
+        if (e.data.size > 0) audioChunks.push(e.data);
+      };
+      mediaRecorder.onstop = function() {
+        audioBlob = new Blob(audioChunks, { type: selectedMime || 'audio/webm' });
+        stream.getTracks().forEach(function(t) { t.stop(); });
+        showResult();
+      };
+      mediaRecorder.start(1000);
+      recording = true;
+      seconds = 0;
+      updateTimer();
+      timerInterval = setInterval(function() { seconds++; updateTimer(); }, 1000);
+
+      document.getElementById('recBtn').classList.add('recording');
+      document.getElementById('recStatus').className = 'status recording';
+      document.getElementById('recStatus').textContent = 'Recording... tap to stop';
+
+      if (analyser) updateVisualiser();
+    }).catch(function(err) {
+      if (err.name === 'NotAllowedError') {
+        alert('Microphone access was denied. Please allow microphone access in your browser settings and try again.');
+      } else {
+        alert('Could not access microphone: ' + err.message);
+      }
+    });
+  }
+
+  function stopRecording() {
+    recording = false;
+    clearInterval(timerInterval);
+    if (mediaRecorder && mediaRecorder.state !== 'inactive') { mediaRecorder.stop(); }
+    document.getElementById('recBtn').classList.remove('recording');
+    document.getElementById('recStatus').className = 'status';
+    document.getElementById('recStatus').textContent = 'Recording complete';
+    var bars = document.querySelectorAll('.visualiser .bar');
+    for (var i = 0; i < bars.length; i++) bars[i].style.height = '4px';
+  }
+
+  function updateTimer() {
+    var mn = Math.floor(seconds / 60);
+    var sc = seconds % 60;
+    document.getElementById('timer').textContent = (mn < 10 ? '0' : '') + mn + ':' + (sc < 10 ? '0' : '') + sc;
+  }
+
+  function handleFileUpload(input) {
+    if (input.files && input.files[0]) {
+      audioBlob = input.files[0];
+      showResult();
+    }
+  }
+
+  function showResult() {
+    document.getElementById('recorderUI').style.display = 'none';
+    document.getElementById('uploadUI').style.display = 'none';
+    document.getElementById('resultUI').style.display = 'block';
+    var name = audioBlob.name || ('1to1-recording.' + (audioBlob.type.indexOf('webm') > -1 ? 'webm' : 'mp4'));
+    var sizeMB = (audioBlob.size / 1024 / 1024).toFixed(1);
+    document.getElementById('resultName').textContent = name;
+    document.getElementById('resultSize').textContent = sizeMB + ' MB' + (seconds ? ' • ' + formatDuration(seconds) : '');
+  }
+
+  function formatDuration(s) {
+    if (!s) return '';
+    var mn = Math.floor(s / 60);
+    var sc = s % 60;
+    return mn + 'm ' + sc + 's';
+  }
+
+  // ─── Send (always postMessage back to opener) ───
+  function sendToApp() {
+    if (!audioBlob) return;
+    document.getElementById('resultUI').style.display = 'none';
+    document.getElementById('sendingUI').style.display = 'block';
+    document.getElementById('sendingText').textContent = 'Preparing recording...';
+
+    var reader = new FileReader();
+    reader.onloadend = function() {
+      var base64 = reader.result.split(',')[1];
+      var mimeType = audioBlob.type || 'audio/webm';
+
+      document.getElementById('sendingText').textContent = 'Returning recording to ARIA...';
+
+      // Safety net: local download in case postMessage fails or opener navigated away
+      try { downloadRecording(); } catch(e) { /* non-fatal */ }
+
+      var sent = false;
+      if (window.opener && !window.opener.closed) {
+        try {
+          window.opener.postMessage({
+            type: 'aria-voice-audio',
+            source: 'sc-recorder',
+            base64: base64,
+            mimeType: mimeType,
+            duration: seconds
+          }, '*');
+          sent = true;
+        } catch(e) { sent = false; }
+      }
+
+      if (!sent) {
+        alert('Could not return audio to ARIA — the parent window may have closed. A local copy has been downloaded to your computer; please drop it into ARIA via "Upload File" when ready.');
+        document.getElementById('sendingUI').style.display = 'none';
+        document.getElementById('successUI').style.display = 'block';
+        document.getElementById('successTitle').textContent = 'Local copy saved';
+        document.getElementById('successBody').textContent = 'Your recording was downloaded to your computer. Open ARIA Session Cycle and use Upload File on Record live 1:1 to send it for transcription.';
+        return;
+      }
+
+      document.getElementById('sendingUI').style.display = 'none';
+      document.getElementById('successUI').style.display = 'block';
+      setTimeout(function() { try { window.close(); } catch(e) {} }, 2500);
+    };
+    reader.readAsDataURL(audioBlob);
+  }
+
+  function downloadRecording() {
+    var url = URL.createObjectURL(audioBlob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = '1to1-recording-' + new Date().toISOString().slice(0,10) + '.' +
+      (audioBlob.type.indexOf('webm') > -1 ? 'webm' : audioBlob.type.indexOf('mp4') > -1 ? 'mp4' : 'wav');
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  function resetAll() {
+    audioBlob = null;
+    audioChunks = [];
+    seconds = 0;
+    recording = false;
+    clearInterval(timerInterval);
+    document.getElementById('recBtn').classList.remove('recording');
+    document.getElementById('recStatus').className = 'status';
+    document.getElementById('recStatus').textContent = 'Tap to start recording';
+    document.getElementById('timer').textContent = '00:00';
+    document.getElementById('resultUI').style.display = 'none';
+    document.getElementById('sendingUI').style.display = 'none';
+    document.getElementById('successUI').style.display = 'none';
+    document.getElementById('fileInput').value = '';
+    setMode(mode);
+  }
+</script>
+</body>
+</html>
